@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AstraHonda Motor — Sistem Sarana Handling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══ RESET & BASE ═══ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue:   #154dc5; --blue-l: #EFF6FF; --blue-d: #1D4ED8;
+  --teal:   #0D9488; --teal-l: #F0FDFA;
+  --amber:  #D97706; --amber-l: #FFFBEB;
+  --red:    #DC2626; --red-l: #FEF2F2;
+  --green:  #16A34A; --green-l: #F0FDF4;
+  --gray50: #F8FAFC; --gray100:#F1F5F9; --gray200:#E2E8F0;
+  --gray300:#CBD5E1; --gray400:#94A3B8; --gray500:#64748B;
+  --gray600:#475569; --gray700:#334155; --gray800:#1E293B; --gray900:#0F172A;
+  --white:  #FFFFFF;
+  --sidebar-w: 240px;
+  --sans: 'Plus Jakarta Sans', sans-serif;
+  --radius: 10px; --radius-lg: 14px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
+}
+html, body { height: 100%; font-family: var(--sans); background: var(--gray50); color: var(--gray800); font-size: 14px; line-height: 1.5; }
+button { font-family: var(--sans); cursor: pointer; }
+input, select, textarea { font-family: var(--sans); }
+a { text-decoration: none; color: inherit; }
+
+/* ═══ LOGIN PAGE ═══ */
+#login-page {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F2027 100%);
+  position: relative; overflow: hidden;
+}
+#login-page::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(37,99,235,0.15) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.login-box {
+  background: var(--white); border-radius: 20px;
+  padding: 40px; width: 440px; position: relative; z-index: 1;
+  box-shadow: var(--shadow-lg);
+}
+.login-logo {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 28px;
+}
+.logo-mark {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--red), #ff0000);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; color: white; letter-spacing: -1px;
+}
+.logo-text { font-size: 22px; font-weight: 800; color: var(--gray900); letter-spacing: -0.5px; }
+.logo-text span { color: var(--red); }
+.login-title { font-size: 18px; font-weight: 700; color: var(--gray900); margin-bottom: 6px; }
+.login-sub { font-size: 13px; color: var(--gray500); margin-bottom: 28px; }
+.login-label { font-size: 12px; font-weight: 600; color: var(--gray600); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; display: block; }
+.role-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.role-card {
+  display: flex; align-items: center; gap: 16px;
+  border: 2px solid var(--gray200); border-radius: var(--radius-lg);
+  padding: 14px 16px; cursor: pointer; transition: all 0.18s; background: var(--white);
+}
+.role-card:hover { border-color: var(--blue); background: var(--blue-l); }
+.role-card.selected { border-color: var(--blue); background: var(--blue-l); }
+.role-icon {
+  width: 42px; height: 42px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+}
+.ri-wh { background: #E0F2FE; }
+.ri-sp { background: #FEF9C3; }
+.ri-dc { background: #FCE7F3; }
+.role-info { flex: 1; }
+.role-name { font-size: 14px; font-weight: 700; color: var(--gray800); }
+.role-desc { font-size: 12px; color: var(--gray500); }
+.role-badge {
+  font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: 0.07em;
+}
+.badge-portal { background: #DBEAFE; color: var(--blue); }
+.badge-new    { background: #FEF9C3; color: #92400E; }
+.badge-nonsys { background: #FCE7F3; color: #9D174D; }
+.radio-dot {
+  width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--gray300);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.role-card.selected .radio-dot { border-color: var(--blue); }
+.role-card.selected .radio-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--blue); display: block; }
+.btn-login {
+  width: 100%; padding: 13px; border-radius: var(--radius-lg); border: none;
+  background: linear-gradient(135deg, var(--blue), var(--blue-d));
+  color: white; font-size: 15px; font-weight: 700;
+  transition: opacity 0.2s, transform 0.1s; cursor: pointer;
+}
+.btn-login:hover { opacity: 0.9; }
+.btn-login:active { transform: scale(0.99); }
+
+/* ═══ APP LAYOUT ═══ */
+#app { display: none; height: 100vh; }
+.layout { display: flex; height: 100%; }
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w); background: var(--gray900); flex-shrink: 0;
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+.sidebar-logo {
+  padding: 20px 18px 16px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sidebar-logo .logo-mark { width: 36px; height: 36px; font-size: 15px; border-radius: 9px; }
+.sidebar-logo .logo-text { font-size: 17px; color: white; font-weight: 800; letter-spacing: -0.3px; }
+.sidebar-role-pill {
+  margin: 12px 14px; border-radius: var(--radius);
+  padding: 10px 12px; display: flex; align-items: center; gap: 10px;
+}
+.srp-wh { background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.25); }
+.srp-sp { background: rgba(217,119,6,0.15); border: 1px solid rgba(217,119,6,0.25); }
+.srp-dc { background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.25); }
+.srp-icon { font-size: 20px; }
+.srp-name { font-size: 13px; font-weight: 700; color: white; }
+.srp-tag { font-size: 10px; color: rgba(255,255,255,0.45); }
+.sidebar-nav { flex: 1; padding: 8px 10px; }
+.nav-section-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700;
+  color: rgba(255,255,255,0.3); padding: 14px 8px 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px; cursor: pointer;
+  color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 500;
+  transition: all 0.15s; position: relative; border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: rgba(37,99,235,0.2); color: white; }
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 20px; background: var(--blue); border-radius: 999px; }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto; background: var(--red); color: white;
+  font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px; min-width: 18px; text-align: center;
+}
+.sidebar-footer {
+  padding: 12px 14px; border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; gap: 10px;
+}
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), #7C3AED);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: white; flex-shrink: 0;
+}
+.user-name { font-size: 12px; font-weight: 600; color: white; }
+.user-role-small { font-size: 10px; color: rgba(255,255,255,0.4); }
+.logout-btn {
+  margin-left: auto; background: none; border: none; color: rgba(255,255,255,0.3);
+  cursor: pointer; font-size: 16px; padding: 4px; transition: color 0.15s;
+}
+.logout-btn:hover { color: white; }
+
+/* MAIN CONTENT */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar {
+  background: var(--white); border-bottom: 1px solid var(--gray200);
+  padding: 14px 28px; display: flex; align-items: center; gap: 16px;
+  flex-shrink: 0;
+}
+.topbar-title { font-size: 17px; font-weight: 700; color: var(--gray900); flex: 1; }
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+.content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+/* ═══ COMPONENTS ═══ */
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius); border: none;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  font-family: var(--sans); line-height: 1;
+}
+.btn-primary { background: var(--blue); color: white; }
+.btn-primary:hover { background: var(--blue-d); }
+.btn-success { background: var(--green); color: white; }
+.btn-success:hover { background: #15803D; }
+.btn-warning { background: var(--amber); color: white; }
+.btn-warning:hover { background: #B45309; }
+.btn-danger { background: var(--red); color: white; }
+.btn-danger:hover { background: #B91C1C; }
+.btn-outline { background: white; color: var(--gray700); border: 1px solid var(--gray200); }
+.btn-outline:hover { background: var(--gray50); border-color: var(--gray300); }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-lg { padding: 11px 24px; font-size: 15px; }
+
+/* Cards */
+.card { background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray200); padding: 20px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.card-title { font-size: 15px; font-weight: 700; color: var(--gray900); }
+.card-subtitle { font-size: 12px; color: var(--gray500); margin-top: 2px; }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray200);
+  padding: 18px 20px; display: flex; flex-direction: column; gap: 8px;
+}
+.stat-icon { font-size: 22px; }
+.stat-val { font-size: 28px; font-weight: 800; color: var(--gray900); letter-spacing: -1px; }
+.stat-label { font-size: 12px; color: var(--gray500); font-weight: 500; }
+.stat-change { font-size: 11px; display: flex; align-items: center; gap: 4px; }
+.change-up { color: var(--green); }
+.change-warn { color: var(--amber); }
+
+/* Badges/Status */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+}
+.status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+.s-draft     { background: var(--gray100); color: var(--gray600); } .s-draft::before { background: var(--gray400); }
+.s-notified  { background: #EFF6FF; color: #1D4ED8; } .s-notified::before { background: var(--blue); }
+.s-confirmed { background: var(--green-l); color: var(--green); } .s-confirmed::before { background: var(--green); }
+.s-timechange{ background: var(--amber-l); color: var(--amber); } .s-timechange::before { background: var(--amber); }
+.s-memo-done { background: #F5F3FF; color: #6D28D9; } .s-memo-done::before { background: #7C3AED; }
+.s-transit   { background: #FFF7ED; color: #C2410C; } .s-transit::before { background: #EA580C; }
+.s-closed    { background: var(--green-l); color: var(--green); } .s-closed::before { background: var(--green); }
+.s-overstock { background: var(--red-l); color: var(--red); } .s-overstock::before { background: var(--red); }
+.s-normal    { background: var(--green-l); color: var(--green); } .s-normal::before { background: var(--green); }
+
+/* Table */
+.table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--gray200); }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  background: var(--gray50); padding: 10px 14px; text-align: left;
+  font-size: 11px; font-weight: 700; color: var(--gray500);
+  text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 1px solid var(--gray200);
+}
+tbody td { padding: 12px 14px; border-bottom: 1px solid var(--gray100); font-size: 13px; color: var(--gray700); }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--gray50); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: none; align-items: center; justify-content: center; z-index: 999;
+  backdrop-filter: blur(3px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--white); border-radius: 18px; padding: 28px;
+  width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn { from{opacity:0;transform:scale(0.95) translateY(12px)} to{opacity:1;transform:none} }
+.modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+.modal-title { font-size: 17px; font-weight: 700; color: var(--gray900); }
+.modal-close { background: none; border: none; font-size: 20px; color: var(--gray400); cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+.modal-close:hover { background: var(--gray100); color: var(--gray700); }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--gray100); }
+
+/* Form */
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--gray700); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.06em; }
+.form-control {
+  width: 100%; padding: 9px 12px; border: 1px solid var(--gray200); border-radius: var(--radius);
+  font-size: 13px; font-family: var(--sans); color: var(--gray800);
+  transition: border-color 0.15s, box-shadow 0.15s; background: var(--white);
+}
+.form-control:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+select.form-control { cursor: pointer; }
+textarea.form-control { resize: vertical; min-height: 80px; }
+
+/* Notification Panel */
+.notif-item {
+  display: flex; gap: 14px; padding: 14px;
+  border-radius: var(--radius-lg); border: 1px solid var(--gray200);
+  background: var(--white); margin-bottom: 10px; cursor: pointer;
+  transition: all 0.15s;
+}
+.notif-item:hover { border-color: var(--blue); background: var(--blue-l); }
+.notif-item.unread { border-left: 3px solid var(--blue); }
+.notif-icon-wrap {
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.ni-email { background: #EFF6FF; } .ni-alert { background: #FEF2F2; }
+.ni-check { background: #F0FDF4; } .ni-update { background: #FFFBEB; }
+.notif-content { flex: 1; }
+.notif-title { font-size: 13px; font-weight: 600; color: var(--gray800); margin-bottom: 3px; }
+.notif-body { font-size: 12px; color: var(--gray500); line-height: 1.5; }
+.notif-time { font-size: 11px; color: var(--gray400); white-space: nowrap; }
+
+/* Toast */
+#toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--white); border-radius: var(--radius-lg); padding: 14px 16px;
+  box-shadow: var(--shadow-lg); border: 1px solid var(--gray200);
+  min-width: 300px; max-width: 380px;
+  animation: toastIn 0.3s ease; border-left: 4px solid var(--blue);
+}
+.toast.success { border-left-color: var(--green); }
+.toast.warning { border-left-color: var(--amber); }
+.toast.error   { border-left-color: var(--red); }
+.toast.email   { border-left-color: #7C3AED; }
+@keyframes toastIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
+.toast-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.toast-title { font-size: 13px; font-weight: 700; color: var(--gray900); margin-bottom: 2px; }
+.toast-msg { font-size: 12px; color: var(--gray500); line-height: 1.45; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--gray400); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; font-weight: 500; color: var(--gray500); }
+.empty-sub  { font-size: 12px; color: var(--gray400); margin-top: 4px; }
+
+/* Flow Steps visual */
+.flow-steps-visual { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+.flow-step-item {
+  display: flex; align-items: center; gap: 0;
+}
+.fsi-node {
+  background: var(--gray50); border: 2px solid var(--gray200); border-radius: 999px;
+  padding: 6px 14px; font-size: 12px; font-weight: 600; color: var(--gray600);
+  white-space: nowrap;
+}
+.fsi-node.done { background: var(--green-l); border-color: var(--green); color: var(--green); }
+.fsi-node.active { background: var(--blue-l); border-color: var(--blue); color: var(--blue); }
+.fsi-arrow { font-size: 14px; color: var(--gray300); padding: 0 6px; }
+
+/* Page header */
+.page-header { margin-bottom: 22px; }
+.page-header h1 { font-size: 22px; font-weight: 800; color: var(--gray900); letter-spacing: -0.5px; }
+.page-header p { font-size: 13px; color: var(--gray500); margin-top: 4px; }
+
+/* Views */
+.view { display: none; }
+.view.active { display: block; }
+
+/* Timeline */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.tl-item { display: flex; gap: 14px; padding-bottom: 20px; position: relative; }
+.tl-item:not(:last-child)::before { content:''; position:absolute; left:15px; top:34px; bottom:0; width:2px; background:var(--gray100); }
+.tl-dot { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display:flex; align-items:center; justify-content:center; font-size:14px; z-index:1; }
+.tl-wh  { background:var(--blue-l);  border:2px solid var(--blue); }
+.tl-sp  { background:var(--amber-l); border:2px solid var(--amber); }
+.tl-dc  { background:#FDF4FF;        border:2px solid #A855F7; }
+.tl-sys { background:var(--gray100); border:2px solid var(--gray300); }
+.tl-content { flex:1; }
+.tl-title { font-size:13px; font-weight:600; color:var(--gray800); }
+.tl-meta  { font-size:11px; color:var(--gray400); margin-top:2px; }
+.tl-note  { font-size:12px; color:var(--gray600); margin-top:6px; background:var(--gray50); padding:8px 10px; border-radius:8px; border-left:3px solid var(--gray200); }
+
+/* grid helpers */
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.mb-4 { margin-bottom:16px; } .mb-6 { margin-bottom:24px; } .mt-4 { margin-top:16px; }
+.flex-between { display:flex; align-items:center; justify-content:space-between; }
+.flex-center  { display:flex; align-items:center; }
+.gap-2 { gap:8px; } .gap-3 { gap:12px; }
+.text-sm { font-size:12px; } .text-muted { color:var(--gray500); }
+.text-bold { font-weight:700; }
+.pill {
+  display:inline-block; padding:3px 10px; border-radius:999px;
+  font-size:11px; font-weight:600;
+}
+.pill-blue   { background:var(--blue-l); color:var(--blue); }
+.pill-green  { background:var(--green-l); color:var(--green); }
+.pill-amber  { background:var(--amber-l); color:var(--amber); }
+.pill-red    { background:var(--red-l); color:var(--red); }
+.pill-purple { background:#F5F3FF; color:#6D28D9; }
+.pill-gray   { background:var(--gray100); color:var(--gray600); }
+
+/* Divider */
+hr.divider { border:none; border-top:1px solid var(--gray100); margin:20px 0; }
+
+@media (max-width: 768px) {
+  .sidebar { width: 56px; }
+  .sidebar-logo .logo-text, .srp-name, .srp-tag, .nav-item span, .sidebar-footer .user-name, .sidebar-footer .user-role-small { display: none; }
+  .nav-item { justify-content: center; }
+  .nav-item.active::before { display:none; }
+  .content { padding: 16px; }
+  .topbar { padding: 12px 16px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .grid2, .grid3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-mark">AHM</div>
+      <div class="logo-text">Astra<span>Honda Motor</span></div>
+    </div>
+    <div class="login-title">Selamat Datang</div>
+    <div class="login-sub">Selamat datang di sistem pengambilan sarana handling AstraHonda Motor</div>
+    <label class="login-label">Pilih</label>
+    <div class="role-cards" id="role-cards">
+      <div class="role-card selected" data-role="wh" onclick="selectRole('wh')">
+        <div class="role-icon ri-wh">🏭</div>
+        <div class="role-info">
+          <div class="role-name">Warehouse</div>
+          <div class="role-desc">Monitoring stok & buat perintah pengambilan</div>
+        </div>
+        <span class="role-badge badge-portal">Portal</span>
+        <div class="radio-dot"></div>
+      </div>
+      <div class="role-card" data-role="sp" onclick="selectRole('sp')">
+        <div class="role-icon ri-sp">🚚</div>
+        <div class="role-info">
+          <div class="role-name">Supplier</div>
+          <div class="role-desc">Terima notifikasi & konfirmasi pengambilan</div>
+        </div>
+        <span class="role-badge badge-new">New System</span>
+        <div class="radio-dot"></div>
+      </div>
+      <div class="role-card" data-role="dc" onclick="selectRole('dc')">
+        <div class="role-icon" style="background:#FCE7F3;">📋</div>
+        <div class="role-info">
+          <div class="role-name">Delivery Control</div>
+          <div class="role-desc">Koordinasi, buat memo & kelola transaksi</div>
+        </div>
+        <span class="role-badge badge-nonsys">Non-System</span>
+        <div class="radio-dot"></div>
+      </div>
+    </div>
+    <button class="btn-login" onclick="doLogin()">Masuk ke Sistem →</button>
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--gray400);">
+      Demo: Buka 3 tab browser untuk simulasi multi-role
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">AHM</div>
+        <div class="logo-text">Astra<span style="color:var(--blue)">Honda Motor</span></div>
+      </div>
+      <div class="sidebar-role-pill" id="sidebar-role-pill">
+        <span class="srp-icon" id="srp-icon"></span>
+        <div>
+          <div class="srp-name" id="srp-name"></div>
+          <div class="srp-tag" id="srp-tag"></div>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="user-avatar" id="user-avatar-sb">U</div>
+        <div>
+          <div class="user-name" id="user-name-sb">User</div>
+          <div class="user-role-small" id="user-role-sb">Role</div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()" title="Keluar">⏏</button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="topbar">
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-actions">
+          <span id="notif-topbar" style="font-size:11px;color:var(--gray500);"></span>
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,0.2);"></div>
+          <span style="font-size:12px;color:var(--gray500);">Online</span>
+        </div>
+      </div>
+      <div class="content" id="main-content"></div>
+    </main>
+  </div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-box">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title">Modal Title</div>
+        <div style="font-size:12px;color:var(--gray500);margin-top:3px;" id="modal-subtitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   STATE STORE — shared simulated backend
+═══════════════════════════════════════ */
+const STORAGE_KEY = 'saralink_state';
+
+const defaultState = {
+  orders: [
+    {
+      id: 'ORD-001', stockItem: 'Pallet Kayu 120x100', qty: 45, unit: 'pcs',
+      status: 'notified', createdAt: '2024-12-01 08:30',
+      supplier: 'PT Maju Sejahtera', deliveryTime: '2024-12-03 09:00',
+      memo: null, noPolisi: null, timeline: [
+        { actor:'wh', icon:'📦', label:'Monitoring stock — over stock terdeteksi', time:'2024-12-01 08:15' },
+        { actor:'wh', icon:'📤', label:'Upload data over stock ke portal', time:'2024-12-01 08:28' },
+        { actor:'sys', icon:'📧', label:'Email notifikasi dikirim ke PT Maju Sejahtera', time:'2024-12-01 08:30' },
+      ]
+    },
+    {
+      id: 'ORD-002', stockItem: 'Dolly Trolley Besi', qty: 12, unit: 'unit',
+      status: 'confirmed', createdAt: '2024-12-01 10:00',
+      supplier: 'CV Sumber Teknik', deliveryTime: '2024-12-02 14:00',
+      memo: null, noPolisi: null, timeline: [
+        { actor:'wh', icon:'📦', label:'Over stock terdeteksi — dolly trolley besi', time:'2024-12-01 09:50' },
+        { actor:'wh', icon:'📤', label:'Upload data over stock', time:'2024-12-01 10:00' },
+        { actor:'sys', icon:'📧', label:'Email dikirim ke CV Sumber Teknik', time:'2024-12-01 10:01' },
+        { actor:'sp', icon:'✅', label:'Supplier konfirmasi waktu pengambilan 02 Des 14:00', time:'2024-12-01 11:30' },
+      ]
+    },
+    {
+      id: 'ORD-003', stockItem: 'Hand Pallet 3 Ton', qty: 8, unit: 'unit',
+      status: 'closed', createdAt: '2024-11-28 09:00',
+      supplier: 'PT Maju Sejahtera', deliveryTime: '2024-11-30 10:00',
+      memo: 'MEMO-2024-028', noPolisi: 'B 1234 XY', timeline: [
+        { actor:'wh', icon:'📦', label:'Over stock terdeteksi', time:'2024-11-28 08:45' },
+        { actor:'sys', icon:'📧', label:'Email dikirim ke PT Maju Sejahtera', time:'2024-11-28 09:00' },
+        { actor:'sp', icon:'✅', label:'Supplier konfirmasi', time:'2024-11-28 10:15' },
+        { actor:'dc', icon:'📄', label:'Memo MEMO-2024-028 dibuat, no polisi B 1234 XY', time:'2024-11-29 08:00' },
+        { actor:'dc', icon:'🖨️', label:'Memo dicetak', time:'2024-11-29 08:10' },
+        { actor:'dc', icon:'📦', label:'Transaksi sarana handling out', time:'2024-11-30 10:05' },
+        { actor:'dc', icon:'🔒', label:'Transaksi ditutup', time:'2024-11-30 10:30' },
+      ]
+    }
+  ],
+  stocks: [
+    { id:'STK-001', name:'Pallet Kayu 120x100', qty:145, min:100, unit:'pcs', location:'Gudang A' },
+    { id:'STK-002', name:'Dolly Trolley Besi', qty:32,  min:20,  unit:'unit', location:'Gudang B' },
+    { id:'STK-003', name:'Hand Pallet 3 Ton',  qty:18,  min:10,  unit:'unit', location:'Gudang A' },
+    { id:'STK-004', name:'Rak Gudang Besi L',  qty:60,  min:40,  unit:'set',  location:'Gudang C' },
+    { id:'STK-005', name:'Forklift Manual 2T', qty:5,   min:3,   unit:'unit', location:'Gudang A' },
+    { id:'STK-006', name:'Conveyor Portable',  qty:12,  min:8,   unit:'unit', location:'Gudang B' },
+  ],
+  notifications: {
+    wh: [
+      { id:'N-W1', type:'check', title:'ORD-002 Dikonfirmasi Supplier', body:'CV Sumber Teknik mengkonfirmasi waktu pengambilan Dolly Trolley pada 02 Des 14:00', time:'11.30', read:false },
+      { id:'N-W2', type:'update', title:'ORD-003 Transaksi Closed', body:'Transaksi Hand Pallet 3 Ton telah ditutup oleh Delivery Control', time:'Kemarin', read:true },
+    ],
+    sp: [
+      { id:'N-S1', type:'email', title:'Notifikasi Pengambilan: Pallet Kayu 120x100', body:'Warehouse mendeteksi over stock 45 pcs Pallet Kayu 120x100. Mohon konfirmasi waktu pengambilan.', time:'08.30', read:false },
+      { id:'N-S2', type:'check', title:'ORD-002 Memo Siap Dicetak', body:'Delivery Control telah menyiapkan memo untuk pengambilan Dolly Trolley Besi', time:'13.45', read:true },
+    ],
+    dc: [
+      { id:'N-D1', type:'check', title:'ORD-002 Siap Diproses', body:'Supplier CV Sumber Teknik telah konfirmasi pengambilan. Silakan buat memo.', time:'11.30', read:false },
+      { id:'N-D2', type:'alert', title:'ORD-001 Menunggu Konfirmasi', body:'PT Maju Sejahtera belum mengkonfirmasi waktu pengambilan Pallet Kayu', time:'09.00', read:false },
+    ],
+  }
+};
+
+function getState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || JSON.parse(JSON.stringify(defaultState)); }
+  catch(e) { return JSON.parse(JSON.stringify(defaultState)); }
+}
+function setState(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+function resetState() { localStorage.removeItem(STORAGE_KEY); }
+
+/* init state if empty */
+if (!localStorage.getItem(STORAGE_KEY)) setState(JSON.parse(JSON.stringify(defaultState)));
+
+/* ═══ AUTH ═══ */
+let currentRole = null;
+const roleConfig = {
+  wh: { name:'Warehouse',       icon:'🏭', tag:'Portal System', pillClass:'srp-wh', avatar:'WH', color:'var(--blue)' },
+  sp: { name:'Supplier',        icon:'🚚', tag:'New System',    pillClass:'srp-sp', avatar:'SP', color:'var(--amber)' },
+  dc: { name:'Delivery Control',icon:'📋', tag:'Non System',    pillClass:'srp-dc', avatar:'DC', color:'var(--red)' },
+};
+
+function selectRole(r) {
+  currentRole = r;
+  document.querySelectorAll('.role-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.role === r);
+  });
+}
+function doLogin() {
+  if (!currentRole) { showToast('warning','Pilih Role','Pilih salah satu role terlebih dahulu.'); return; }
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
+function doLogout() {
+  currentRole = null;
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+/* ═══ APP INIT ═══ */
+const navConfig = {
+  wh: [
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { section:'Monitoring' },
+    { id:'stock', icon:'📦', label:'Stock Monitoring' },
+    { id:'orders-wh', icon:'📋', label:'Perintah Pengambilan', badge:'orders' },
+    { section:'Transaksi' },
+    { id:'history', icon:'🕐', label:'Riwayat Transaksi' },
+    { section:'Notifikasi' },
+    { id:'notif', icon:'🔔', label:'Notifikasi', badge:'notif' },
+  ],
+  sp: [
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { section:'Tugas Saya' },
+    { id:'notif', icon:'📩', label:'Kotak Masuk', badge:'notif' },
+    { id:'konfirmasi', icon:'✅', label:'Konfirmasi Pengambilan' },
+    { section:'Riwayat' },
+    { id:'history', icon:'🕐', label:'Riwayat Transaksi' },
+  ],
+  dc: [
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { section:'Operasional' },
+    { id:'monitoring-dc', icon:'🔍', label:'Monitoring Perintah' },
+    { id:'memo', icon:'📄', label:'Manajemen Memo' },
+    { section:'Transaksi' },
+    { id:'transaksi-dc', icon:'💼', label:'Kelola Transaksi' },
+    { id:'history', icon:'🕐', label:'Riwayat Transaksi' },
+    { section:'Notifikasi' },
+    { id:'notif', icon:'🔔', label:'Notifikasi', badge:'notif' },
+  ],
+};
+
+function initApp() {
+  const rc = roleConfig[currentRole];
+  // Sidebar role pill
+  const pill = document.getElementById('sidebar-role-pill');
+  pill.className = `sidebar-role-pill ${rc.pillClass}`;
+  document.getElementById('srp-icon').textContent = rc.icon;
+  document.getElementById('srp-name').textContent = rc.name;
+  document.getElementById('srp-tag').textContent = rc.tag;
+  // User footer
+  document.getElementById('user-avatar-sb').textContent = rc.avatar;
+  document.getElementById('user-name-sb').textContent = rc.name;
+  document.getElementById('user-role-sb').textContent = rc.tag;
+  // Build nav
+  buildNav();
+  // Load dashboard
+  loadView('dashboard');
+}
+
+function getUnreadCount(role) {
+  const s = getState();
+  return (s.notifications[role] || []).filter(n => !n.read).length;
+}
+function getPendingOrders() {
+  const s = getState();
+  return s.orders.filter(o => !['closed'].includes(o.status)).length;
+}
+
+function buildNav() {
+  const nav = document.getElementById('sidebar-nav');
+  const items = navConfig[currentRole];
+  nav.innerHTML = items.map(item => {
+    if (item.section) return `<div class="nav-section-label">${item.section}</div>`;
+    let badgeHtml = '';
+    if (item.badge === 'notif') {
+      const cnt = getUnreadCount(currentRole);
+      if (cnt > 0) badgeHtml = `<span class="nav-badge">${cnt}</span>`;
+    }
+    if (item.badge === 'orders') {
+      const cnt = getPendingOrders();
+      if (cnt > 0) badgeHtml = `<span class="nav-badge">${cnt}</span>`;
+    }
+    return `<button class="nav-item" id="nav-${item.id}" onclick="loadView('${item.id}')">
+      <span class="nav-icon">${item.icon}</span>
+      <span>${item.label}</span>
+      ${badgeHtml}
+    </button>`;
+  }).join('');
+}
+
+function loadView(id) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  const navEl = document.getElementById('nav-' + id);
+  if (navEl) navEl.classList.add('active');
+  const titles = {
+    dashboard: 'Dashboard', stock: 'Stock Monitoring', 'orders-wh': 'Perintah Pengambilan',
+    history: 'Riwayat Transaksi', notif: currentRole === 'sp' ? 'Kotak Masuk' : 'Notifikasi',
+    konfirmasi: 'Konfirmasi Pengambilan', 'monitoring-dc': 'Monitoring Perintah',
+    memo: 'Manajemen Memo', 'transaksi-dc': 'Kelola Transaksi',
+  };
+  document.getElementById('topbar-title').textContent = titles[id] || id;
+  const renders = {
+    dashboard: renderDashboard, stock: renderStock, 'orders-wh': renderOrdersWH,
+    history: renderHistory, notif: renderNotif, konfirmasi: renderKonfirmasi,
+    'monitoring-dc': renderMonitoringDC, memo: renderMemo, 'transaksi-dc': renderTransaksiDC,
+  };
+  const fn = renders[id];
+  if (fn) document.getElementById('main-content').innerHTML = fn();
+  else document.getElementById('main-content').innerHTML = `<div class="empty-state"><div class="empty-icon">🚧</div><div class="empty-text">Halaman dalam pengembangan</div></div>`;
+  buildNav();
+}
+
+/* ═══ STATUS HELPERS ═══ */
+const statusLabels = {
+  draft:'Draft', notified:'Notifikasi Terkirim', confirmed:'Dikonfirmasi',
+  timechange:'Perlu Perubahan Waktu', memo_done:'Memo Dibuat',
+  transit:'Dalam Pengiriman', closed:'Selesai'
+};
+function statusBadge(s) {
+  return `<span class="status-badge s-${s.replace('_','-')}">${statusLabels[s]||s}</span>`;
+}
+function fmtDate(d) {
+  if (!d) return '-';
+  try { return new Date(d).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); } catch(e){return d;}
+}
+
+/* ═══ DASHBOARD ═══ */
+function renderDashboard() {
+  const s = getState();
+  if (currentRole === 'wh') return dashboardWH(s);
+  if (currentRole === 'sp') return dashboardSP(s);
+  return dashboardDC(s);
+}
+
+function dashboardWH(s) {
+  const overStock = s.stocks.filter(k => k.qty > k.min * 1.2).length;
+  const active = s.orders.filter(o => o.status !== 'closed').length;
+  const unread = getUnreadCount('wh');
+  return `
+  <div class="page-header"><h1>Dashboard Warehouse</h1><p>Selamat pagi! Pantau status stok dan perintah pengambilan hari ini.</p></div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📦</div>
+      <div class="stat-val">${s.stocks.length}</div>
+      <div class="stat-label">Total Jenis Stok</div>
+      <div class="stat-change change-warn">⚠ ${overStock} item over stock</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📋</div>
+      <div class="stat-val">${active}</div>
+      <div class="stat-label">Perintah Aktif</div>
+      <div class="stat-change change-up">● Perlu tindakan</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-val">${s.orders.filter(o=>o.status==='closed').length}</div>
+      <div class="stat-label">Transaksi Selesai</div>
+      <div class="stat-change change-up">✓ Bulan ini</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔔</div>
+      <div class="stat-val">${unread}</div>
+      <div class="stat-label">Notifikasi Baru</div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Stok Over Limit</div><div class="card-subtitle">Item yang melebihi batas maksimal</div></div><button class="btn btn-primary btn-sm" onclick="loadView('stock')">Lihat Semua</button></div>
+      ${s.stocks.filter(k=>k.qty>k.min*1.2).map(k=>`
+        <div class="flex-between mb-4">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--gray800)">${k.name}</div>
+            <div class="text-sm text-muted">${k.location}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:15px;font-weight:800;color:var(--red)">${k.qty} ${k.unit}</div>
+            <div class="text-sm text-muted">Min: ${k.min}</div>
+          </div>
+        </div>`).join('')||'<div class="empty-state" style="padding:20px"><div class="empty-text">Semua stok normal</div></div>'}
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Perintah Terbaru</div><div class="card-subtitle">Status perintah pengambilan aktif</div></div><button class="btn btn-outline btn-sm" onclick="loadView('orders-wh')">Semua</button></div>
+      ${s.orders.filter(o=>o.status!=='closed').slice(0,3).map(o=>`
+        <div class="flex-between mb-4">
+          <div>
+            <div style="font-size:13px;font-weight:600;">${o.id}</div>
+            <div class="text-sm text-muted">${o.stockItem}</div>
+          </div>
+          ${statusBadge(o.status)}
+        </div>`).join('')||'<div class="empty-state" style="padding:20px"><div class="empty-text">Tidak ada perintah aktif</div></div>'}
+      <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="openModalBuatPerintah()">+ Buat Perintah Baru</button>
+    </div>
+  </div>`;
+}
+
+function dashboardSP(s) {
+  const pending = s.orders.filter(o => o.status === 'notified').length;
+  const confirmed = s.orders.filter(o => ['confirmed','memo_done','transit','closed'].includes(o.status)).length;
+  const unread = getUnreadCount('sp');
+  return `
+  <div class="page-header"><h1>Dashboard Supplier</h1><p>Cek notifikasi dan konfirmasi pengambilan sarana handling.</p></div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-icon">📩</div><div class="stat-val">${unread}</div><div class="stat-label">Notif Belum Dibaca</div></div>
+    <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-val">${pending}</div><div class="stat-label">Menunggu Konfirmasi</div><div class="stat-change change-warn">⚠ Perlu respon</div></div>
+    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val">${confirmed}</div><div class="stat-label">Sudah Dikonfirmasi</div></div>
+    <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-val">${s.orders.filter(o=>o.status==='closed').length}</div><div class="stat-label">Transaksi Selesai</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Notifikasi Perlu Tindakan</div><button class="btn btn-outline btn-sm" onclick="loadView('konfirmasi')">Lihat Semua</button></div>
+    ${s.orders.filter(o=>o.status==='notified').map(o=>`
+      <div class="notif-item unread" onclick="openModalKonfirmasi('${o.id}')">
+        <div class="notif-icon-wrap ni-email">📧</div>
+        <div class="notif-content">
+          <div class="notif-title">Permintaan Pengambilan: ${o.stockItem}</div>
+          <div class="notif-body">Warehouse meminta pengambilan ${o.qty} ${o.unit} dari ${o.supplier}. Waktu yang diusulkan: ${fmtDate(o.deliveryTime)}.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+          <div class="notif-time">${o.createdAt.split(' ')[1]}</div>
+          <button class="btn btn-success btn-sm">Konfirmasi</button>
+        </div>
+      </div>`).join('') || '<div class="empty-state" style="padding:20px"><div class="empty-icon">✅</div><div class="empty-text">Semua sudah direspon</div></div>'}
+  </div>`;
+}
+
+function dashboardDC(s) {
+  const needMemo = s.orders.filter(o => o.status === 'confirmed').length;
+  const inProgress = s.orders.filter(o => ['notified','confirmed','timechange','memo_done','transit'].includes(o.status)).length;
+  const unread = getUnreadCount('dc');
+  return `
+  <div class="page-header"><h1>Dashboard Delivery Control</h1><p>Kelola memo, koordinasi waktu, dan tutup transaksi pengambilan.</p></div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-icon">🔔</div><div class="stat-val">${unread}</div><div class="stat-label">Notifikasi Baru</div></div>
+    <div class="stat-card"><div class="stat-icon">📄</div><div class="stat-val">${needMemo}</div><div class="stat-label">Perlu Buat Memo</div><div class="stat-change change-warn">⚠ Segera proses</div></div>
+    <div class="stat-card"><div class="stat-icon">🔄</div><div class="stat-val">${inProgress}</div><div class="stat-label">Sedang Berjalan</div></div>
+    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val">${s.orders.filter(o=>o.status==='closed').length}</div><div class="stat-label">Closed</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Perlu Buat Memo</div><button class="btn btn-outline btn-sm" onclick="loadView('memo')">Kelola Memo</button></div>
+      ${s.orders.filter(o=>o.status==='confirmed').map(o=>`
+        <div class="notif-item" onclick="openModalMemo('${o.id}')">
+          <div class="notif-icon-wrap ni-check">📄</div>
+          <div class="notif-content">
+            <div class="notif-title">${o.id} — ${o.stockItem}</div>
+            <div class="notif-body">Supplier ${o.supplier} sudah konfirmasi. Buat memo pengambilan.</div>
+          </div>
+          <button class="btn btn-primary btn-sm">Buat Memo</button>
+        </div>`).join('') || '<div class="empty-state" style="padding:16px"><div class="empty-text">Tidak ada memo yang perlu dibuat</div></div>'}
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Status Perintah Aktif</div><button class="btn btn-outline btn-sm" onclick="loadView('monitoring-dc')">Detail</button></div>
+      ${s.orders.filter(o=>o.status!=='closed').map(o=>`
+        <div class="flex-between mb-4">
+          <div>
+            <div style="font-size:13px;font-weight:600">${o.id}</div>
+            <div class="text-sm text-muted">${o.stockItem} · ${o.supplier}</div>
+          </div>
+          ${statusBadge(o.status)}
+        </div>`).join('')||'<div class="empty-state" style="padding:16px"><div class="empty-text">Tidak ada perintah aktif</div></div>'}
+    </div>
+  </div>`;
+}
+
+/* ═══ STOCK VIEW ═══ */
+function renderStock() {
+  const s = getState();
+  return `
+  <div class="page-header flex-between">
+    <div><h1>Stock Monitoring</h1><p>Pantau stok sarana handling dan deteksi kondisi over stock.</p></div>
+    <button class="btn btn-primary" onclick="openModalUploadStock()">📤 Upload Over Stock</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Nama Item</th><th>Lokasi</th><th>Stok Saat Ini</th><th>Batas Min</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody>
+          ${s.stocks.map(k => {
+            const over = k.qty > k.min * 1.2;
+            return `<tr>
+              <td><span class="pill pill-gray">${k.id}</span></td>
+              <td><strong>${k.name}</strong></td>
+              <td>${k.location}</td>
+              <td><strong style="color:${over?'var(--red)':'var(--green)'}">${k.qty} ${k.unit}</strong></td>
+              <td>${k.min} ${k.unit}</td>
+              <td>${over ? '<span class="status-badge s-overstock">Over Stock</span>' : '<span class="status-badge s-normal">Normal</span>'}</td>
+              <td>${over ? `<button class="btn btn-danger btn-sm" onclick="openModalBuatPerintahDari('${k.id}')">Buat Perintah</button>` : '<span class="text-sm text-muted">—</span>'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+/* ═══ ORDERS WH ═══ */
+function renderOrdersWH() {
+  const s = getState();
+  return `
+  <div class="page-header flex-between">
+    <div><h1>Perintah Pengambilan</h1><p>Kelola semua perintah pengambilan sarana handling.</p></div>
+    <button class="btn btn-primary" onclick="openModalBuatPerintah()">+ Buat Perintah</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>No. Perintah</th><th>Item</th><th>Qty</th><th>Supplier</th><th>Waktu Ambil</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody>
+          ${s.orders.map(o=>`<tr>
+            <td><strong>${o.id}</strong></td>
+            <td>${o.stockItem}</td>
+            <td>${o.qty} ${o.unit}</td>
+            <td>${o.supplier}</td>
+            <td>${fmtDate(o.deliveryTime)}</td>
+            <td>${statusBadge(o.status)}</td>
+            <td><button class="btn btn-outline btn-sm" onclick="openModalDetail('${o.id}')">Detail</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+/* ═══ KONFIRMASI SP ═══ */
+function renderKonfirmasi() {
+  const s = getState();
+  const pending = s.orders.filter(o => o.status === 'notified');
+  const done = s.orders.filter(o => ['confirmed','timechange','memo_done','transit','closed'].includes(o.status));
+  return `
+  <div class="page-header"><h1>Konfirmasi Pengambilan</h1><p>Konfirmasi atau ajukan perubahan waktu pengambilan sarana handling.</p></div>
+  ${pending.length ? `
+  <div class="card mb-6">
+    <div class="card-header"><div class="card-title">⏳ Menunggu Respon Anda</div></div>
+    ${pending.map(o=>`
+      <div class="notif-item unread">
+        <div class="notif-icon-wrap ni-email">📧</div>
+        <div class="notif-content">
+          <div class="notif-title">${o.id} — ${o.stockItem}</div>
+          <div class="notif-body">Qty: ${o.qty} ${o.unit} · Waktu yang diusulkan: <strong>${fmtDate(o.deliveryTime)}</strong></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn btn-success btn-sm" onclick="doKonfirmasi('${o.id}', true)">✓ Setuju</button>
+          <button class="btn btn-warning btn-sm" onclick="openModalUbahWaktu('${o.id}')">⏰ Ubah Waktu</button>
+        </div>
+      </div>`).join('')}
+  </div>` : ''}
+  <div class="card">
+    <div class="card-header"><div class="card-title">✅ Sudah Direspon</div></div>
+    ${done.length ? `<div class="table-wrap"><table>
+      <thead><tr><th>No. Perintah</th><th>Item</th><th>Waktu Ambil</th><th>Status</th></tr></thead>
+      <tbody>${done.map(o=>`<tr>
+        <td><strong>${o.id}</strong></td>
+        <td>${o.stockItem}</td>
+        <td>${fmtDate(o.deliveryTime)}</td>
+        <td>${statusBadge(o.status)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : '<div class="empty-state"><div class="empty-text">Belum ada yang direspon</div></div>'}
+  </div>`;
+}
+
+/* ═══ MONITORING DC ═══ */
+function renderMonitoringDC() {
+  const s = getState();
+  return `
+  <div class="page-header"><h1>Monitoring Perintah</h1><p>Pantau semua perintah pengambilan yang sedang berjalan.</p></div>
+  ${s.orders.filter(o=>o.status!=='closed').map(o=>`
+  <div class="card mb-4">
+    <div class="card-header">
+      <div>
+        <div class="card-title">${o.id} — ${o.stockItem}</div>
+        <div class="card-subtitle">${o.supplier} · ${o.qty} ${o.unit}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        ${statusBadge(o.status)}
+        ${o.status === 'timechange' ? `<button class="btn btn-warning btn-sm" onclick="openModalUpdateWaktu('${o.id}')">Update Waktu</button>` : ''}
+        ${o.status === 'confirmed' ? `<button class="btn btn-primary btn-sm" onclick="openModalMemo('${o.id}')">Buat Memo</button>` : ''}
+      </div>
+    </div>
+    <div class="flow-steps-visual">
+      ${['notified','confirmed','memo_done','transit','closed'].map((st,i,arr) => {
+        const statusOrder = ['notified','confirmed','memo_done','transit','closed'];
+        const curIdx = statusOrder.indexOf(o.status);
+        const thisIdx = statusOrder.indexOf(st);
+        const cls = thisIdx < curIdx ? 'done' : thisIdx === curIdx ? 'active' : '';
+        const labels = {notified:'Notif Terkirim',confirmed:'Dikonfirmasi',memo_done:'Memo Dibuat',transit:'Transaksi Out',closed:'Selesai'};
+        return `<div class="flow-step-item">
+          <div class="fsi-node ${cls}">${labels[st]}</div>
+          ${i<arr.length-1?'<span class="fsi-arrow">→</span>':''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:16px;font-size:12px;color:var(--gray500)">
+      <span>📅 Waktu: <strong>${fmtDate(o.deliveryTime)}</strong></span>
+      ${o.memo ? `<span>📄 Memo: <strong>${o.memo}</strong></span>` : ''}
+      ${o.noPolisi ? `<span>🚛 No Polisi: <strong>${o.noPolisi}</strong></span>` : ''}
+    </div>
+  </div>`).join('')}
+  ${s.orders.every(o=>o.status==='closed') ? '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">Semua perintah sudah selesai</div></div>' : ''}`;
+}
+
+/* ═══ MEMO DC ═══ */
+function renderMemo() {
+  const s = getState();
+  const withMemo = s.orders.filter(o => o.memo);
+  const needMemo = s.orders.filter(o => o.status === 'confirmed' && !o.memo);
+  return `
+  <div class="page-header"><h1>Manajemen Memo</h1><p>Buat, edit, dan cetak memo pengambilan sarana handling.</p></div>
+  ${needMemo.length ? `<div class="card mb-4" style="border-color:var(--amber);background:var(--amber-l)">
+    <div class="card-title" style="color:var(--amber)">⚠ ${needMemo.length} Perintah Perlu Memo</div>
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+      ${needMemo.map(o=>`<div class="flex-between">
+        <span style="font-size:13px">${o.id} — ${o.stockItem} (${o.supplier})</span>
+        <button class="btn btn-warning btn-sm" onclick="openModalMemo('${o.id}')">Buat Memo</button>
+      </div>`).join('')}
+    </div>
+  </div>` : ''}
+  <div class="card">
+    <div class="card-header"><div class="card-title">Memo yang Sudah Dibuat</div></div>
+    ${withMemo.length ? `<div class="table-wrap"><table>
+      <thead><tr><th>No. Memo</th><th>No. Perintah</th><th>Item</th><th>No. Polisi</th><th>Status</th><th>Aksi</th></tr></thead>
+      <tbody>${withMemo.map(o=>`<tr>
+        <td><strong>${o.memo}</strong></td>
+        <td>${o.id}</td>
+        <td>${o.stockItem}</td>
+        <td>${o.noPolisi || '-'}</td>
+        <td>${statusBadge(o.status)}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="openModalCetakMemo('${o.id}')">🖨️ Cetak</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : '<div class="empty-state"><div class="empty-text">Belum ada memo dibuat</div></div>'}
+  </div>`;
+}
+
+/* ═══ TRANSAKSI DC ═══ */
+function renderTransaksiDC() {
+  const s = getState();
+  const readyClose = s.orders.filter(o => o.status === 'memo_done');
+  const closed = s.orders.filter(o => o.status === 'closed');
+  return `
+  <div class="page-header"><h1>Kelola Transaksi</h1><p>Proses transaksi sarana handling out dan tutup perintah.</p></div>
+  ${readyClose.length ? `<div class="card mb-4">
+    <div class="card-header"><div class="card-title">🚛 Siap Transaksi Out</div></div>
+    ${readyClose.map(o=>`
+      <div class="notif-item">
+        <div class="notif-icon-wrap ni-check">📦</div>
+        <div class="notif-content">
+          <div class="notif-title">${o.id} — ${o.stockItem}</div>
+          <div class="notif-body">Memo: ${o.memo} · No Polisi: ${o.noPolisi} · Waktu: ${fmtDate(o.deliveryTime)}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn btn-success btn-sm" onclick="doTransaksiOut('${o.id}')">📦 Transaksi Out</button>
+        </div>
+      </div>`).join('')}
+  </div>` : ''}
+  <div class="card">
+    <div class="card-header"><div class="card-title">✅ Transaksi Selesai</div></div>
+    ${closed.length ? `<div class="table-wrap"><table>
+      <thead><tr><th>No. Perintah</th><th>Item</th><th>Memo</th><th>No. Polisi</th><th>Supplier</th><th>Selesai</th></tr></thead>
+      <tbody>${closed.map(o=>`<tr>
+        <td><strong>${o.id}</strong></td>
+        <td>${o.stockItem}</td>
+        <td>${o.memo||'-'}</td>
+        <td>${o.noPolisi||'-'}</td>
+        <td>${o.supplier}</td>
+        <td>${statusBadge('closed')}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : '<div class="empty-state"><div class="empty-text">Belum ada transaksi selesai</div></div>'}
+  </div>`;
+}
+
+/* ═══ NOTIFIKASI ═══ */
+function renderNotif() {
+  const s = getState();
+  const notifs = s.notifications[currentRole] || [];
+  return `
+  <div class="page-header flex-between">
+    <div><h1>${currentRole === 'sp' ? 'Kotak Masuk' : 'Notifikasi'}</h1><p>${notifs.filter(n=>!n.read).length} belum dibaca.</p></div>
+    <button class="btn btn-outline btn-sm" onclick="markAllRead()">Tandai Semua Dibaca</button>
+  </div>
+  <div class="card">
+    ${notifs.length ? notifs.map(n => {
+      const typeClass = {email:'ni-email',alert:'ni-alert',check:'ni-check',update:'ni-update'}[n.type]||'ni-check';
+      const typeIcon  = {email:'📧',alert:'⚠️',check:'✅',update:'🔄'}[n.type]||'📬';
+      return `<div class="notif-item ${n.read?'':'unread'}" onclick="markRead('${n.id}')">
+        <div class="notif-icon-wrap ${typeClass}">${typeIcon}</div>
+        <div class="notif-content">
+          <div class="notif-title">${n.read ? n.title : '<strong>' + n.title + '</strong>'}</div>
+          <div class="notif-body">${n.body}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+          <div class="notif-time">${n.time}</div>
+          ${!n.read ? '<span class="pill pill-blue" style="font-size:9px">BARU</span>' : ''}
+        </div>
+      </div>`;
+    }).join('') : '<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-text">Tidak ada notifikasi</div></div>'}
+  </div>`;
+}
+
+/* ═══ HISTORY ═══ */
+function renderHistory() {
+  const s = getState();
+  return `
+  <div class="page-header"><h1>Riwayat Transaksi</h1><p>Log lengkap semua aktivitas pengambilan sarana handling.</p></div>
+  ${s.orders.map(o=>`
+  <div class="card mb-4">
+    <div class="card-header">
+      <div><div class="card-title">${o.id} — ${o.stockItem}</div>
+      <div class="card-subtitle">${o.qty} ${o.unit} · ${o.supplier}</div></div>
+      ${statusBadge(o.status)}
+    </div>
+    <div class="timeline">
+      ${o.timeline.map(t=>`
+        <div class="tl-item">
+          <div class="tl-dot tl-${t.actor}">${t.icon}</div>
+          <div class="tl-content">
+            <div class="tl-title">${t.label}</div>
+            <div class="tl-meta">${t.time}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>`).join('')}`;
+}
+
+/* ═══ MODAL ACTIONS ═══ */
+function openModal(title, subtitle, bodyHtml, footerHtml) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-subtitle').textContent = subtitle || '';
+  document.getElementById('modal-body').innerHTML = bodyHtml;
+  document.getElementById('modal-footer').innerHTML = footerHtml;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+function openModalBuatPerintah(stockId) {
+  const s = getState();
+  const stock = stockId ? s.stocks.find(k=>k.id===stockId) : null;
+  openModal('Buat Perintah Pengambilan', 'Form perintah pengambilan sarana handling',`
+    <div class="form-group">
+      <label class="form-label">Item Sarana Handling</label>
+      <select class="form-control" id="f-item">
+        ${s.stocks.filter(k=>k.qty>k.min*1.2).map(k=>`<option value="${k.id}" ${stock&&stock.id===k.id?'selected':''}>${k.name} (${k.qty} ${k.unit} — over ${k.min})</option>`).join('')}
+        ${s.stocks.filter(k=>k.qty>k.min*1.2).length===0?'<option>Tidak ada item over stock</option>':''}
+      </select>
+    </div>
+    <div class="grid2">
+      <div class="form-group">
+        <label class="form-label">Supplier</label>
+        <select class="form-control" id="f-supplier">
+          <option>PT Maju Sejahtera</option>
+          <option>CV Sumber Teknik</option>
+          <option>PT Global Logistik</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Waktu Pengambilan</label>
+        <input type="datetime-local" class="form-control" id="f-waktu">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Catatan (opsional)</label>
+      <textarea class="form-control" id="f-catatan" placeholder="Catatan tambahan..."></textarea>
+    </div>`,
+    `<button class="btn btn-outline" onclick="closeModal()">Batal</button>
+     <button class="btn btn-primary" onclick="submitBuatPerintah()">📧 Buat & Kirim Notifikasi</button>`
+  );
+}
+function openModalBuatPerintahDari(stockId) { openModalBuatPerintah(stockId); }
+
+function submitBuatPerintah() {
+  const s = getState();
+  const stockEl = document.getElementById('f-item');
+  const stockId = stockEl.value;
+  const stock = s.stocks.find(k=>k.id===stockId);
+  if (!stock) { showToast('error','Error','Pilih item terlebih dahulu'); return; }
+  const supplier = document.getElementById('f-supplier').value;
+  const waktu = document.getElementById('f-waktu').value || new Date().toISOString().slice(0,16);
+  const now = new Date().toLocaleString('id-ID');
+  const newId = 'ORD-' + String(s.orders.length + 1).padStart(3,'0');
+  s.orders.unshift({
+    id: newId, stockItem: stock.name, qty: stock.qty - stock.min, unit: stock.unit,
+    status: 'notified', createdAt: now, supplier, deliveryTime: waktu,
+    memo: null, noPolisi: null,
+    timeline: [
+      { actor:'wh', icon:'📦', label:`Over stock terdeteksi — ${stock.name}`, time: now },
+      { actor:'wh', icon:'📤', label:'Upload data over stock ke portal', time: now },
+      { actor:'sys', icon:'📧', label:`Email notifikasi dikirim ke ${supplier}`, time: now },
+    ]
+  });
+  s.notifications.sp.unshift({
+    id: 'N-' + Date.now(), type:'email',
+    title: `Notifikasi Pengambilan: ${stock.name}`,
+    body: `Warehouse meminta pengambilan ${stock.qty - stock.min} ${stock.unit}. Waktu: ${fmtDate(waktu)}`,
+    time: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), read:false
+  });
+  setState(s);
+  closeModal();
+  showToast('email','📧 Notifikasi Terkirim',`Perintah ${newId} dibuat. Email dikirim ke ${supplier}.`);
+  loadView('orders-wh');
+}
+
+function openModalKonfirmasi(orderId) {
+  const s = getState();
+  const o = s.orders.find(x=>x.id===orderId);
+  if (!o) return;
+  openModal(`Konfirmasi Pengambilan — ${o.id}`, o.stockItem,`
+    <div style="background:var(--gray50);border-radius:10px;padding:14px;margin-bottom:16px">
+      <div class="grid2">
+        <div><div class="text-sm text-muted">Item</div><div style="font-weight:600">${o.stockItem}</div></div>
+        <div><div class="text-sm text-muted">Quantity</div><div style="font-weight:600">${o.qty} ${o.unit}</div></div>
+        <div><div class="text-sm text-muted">Dari Warehouse</div><div style="font-weight:600">${o.supplier}</div></div>
+        <div><div class="text-sm text-muted">Waktu Usulan</div><div style="font-weight:600">${fmtDate(o.deliveryTime)}</div></div>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--gray600)">Apakah waktu pengambilan <strong>${fmtDate(o.deliveryTime)}</strong> sesuai dengan jadwal Anda?</p>`,
+    `<button class="btn btn-outline" onclick="openModalUbahWaktu('${o.id}')">⏰ Ubah Waktu</button>
+     <button class="btn btn-success" onclick="doKonfirmasi('${o.id}', true)">✅ Konfirmasi Setuju</button>`
+  );
+}
+
+function doKonfirmasi(orderId, setuju) {
+  const s = getState();
+  const o = s.orders.find(x=>x.id===orderId);
+  if (!o) return;
+  const now = new Date().toLocaleString('id-ID');
+  if (setuju) {
+    o.status = 'confirmed';
+    o.timeline.push({ actor:'sp', icon:'✅', label:'Supplier konfirmasi waktu pengambilan', time: now });
+    s.notifications.dc.unshift({
+      id:'N-'+Date.now(), type:'check',
+      title:`${o.id} Dikonfirmasi — Siap Buat Memo`,
+      body:`Supplier ${o.supplier} telah konfirmasi waktu pengambilan ${o.stockItem}. Silakan buat memo.`,
+      time: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), read:false
+    });
+    s.notifications.wh.unshift({
+      id:'N-'+Date.now(), type:'check',
+      title:`${o.id} Dikonfirmasi Supplier`,
+      body:`${o.supplier} mengkonfirmasi pengambilan ${o.stockItem} pada ${fmtDate(o.deliveryTime)}.`,
+      time: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), read:false
+    });
+    setState(s); closeModal();
+    showToast('success','Konfirmasi Terkirim',`Notifikasi konfirmasi dikirim ke Warehouse dan Delivery Control.`);
+    loadView('konfirmasi');
+  }
+}
+
+function openModalUbahWaktu(orderId) {
+  openModal('Ajukan Perubahan Waktu', 'Isi waktu yang Anda inginkan',`
+    <div class="form-group">
+      <label class="form-label">Waktu Baru yang Diinginkan</label>
+      <input type="datetime-local" class="form-control" id="f-waktu-baru">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Alasan Perubahan</label>
+      <textarea class="form-control" id="f-alasan" placeholder="Jelaskan alasan perubahan waktu..."></textarea>
+    </div>`,
+    `<button class="btn btn-outline" onclick="closeModal()">Batal</button>
+     <button class="btn btn-warning" onclick="doUbahWaktu('${orderId}')">📨 Kirim Usulan Perubahan</button>`
+  );
+}
+
+function doUbahWaktu(orderId) {
+  const s = getState();
+  const o = s.orders.find(x=>x.id===orderId);
+  if (!o) return;
+  const waktuBaru = document.getElementById('f-waktu-baru').value;
+  const alasan = document.getElementById('f-alasan').value || 'Perubahan jadwal.';
+  if (!waktuBaru) { showToast('error','Perlu Diisi','Masukkan waktu baru terlebih dahulu.'); return; }
+  const now = new Date().toLocaleString('id-ID');
+  o.status = 'timechange';
+  o.timeline.push({ actor:'sp', icon:'🔄', label:`Supplier ajukan perubahan waktu: ${alasan}`, time: now });
+  s.notifications.dc.unshift({
+    id:'N-'+Date.now(), type:'alert',
+    title:`${o.id} — Usulan Perubahan Waktu`,
+    body:`${o.supplier} mengajukan perubahan waktu untuk ${o.stockItem}. Alasan: ${alasan}`,
+    time: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), read:false
+  });
+  setState(s); closeModal();
+  showToast('warning','Usulan Dikirim','Delivery Control akan memproses perubahan waktu.','email');
+  loadView('konfirmasi');
+}
+
+function openModalUpdateWaktu(orderId) {
+  const s = getState();
+  const o = s.orders.find(x=>x.id===orderId);
+  openModal('Update Waktu Pengambilan', `Koordinasi waktu untuk ${o?.id}`,`
+    <div class="form-group">
+      <label class="form-label">Waktu Baru yang Disepakati</label>
+      <input type="datetime-local" class="form-control" id="f-waktu-dc">
+    </div>`,
+    `<button class="btn btn-outline" onclick="closeModal()">Batal</button>
+     <button class="btn btn-primary" onclick="doUpdateWaktuDC('${orderId}')">📧 Update & Notifikasi Supplier</button>`
+  );
+}
+
+function doUpdateWaktuDC(orderId) {
+  const s = getState();
+  const o = s.orders.find(x=>x.id===orderId);
+  const waktu = document.getElementById('f-waktu-dc').value;
+  if (!waktu) { showToast('error','Perlu Diisi','Masukkan waktu baru.'); return; }
+  const now = new Date().toLocaleString('id-ID');
+  o.deliveryTime = waktu; o.status = 'notified';
+  o.timeline.push({ actor:'dc', icon:'📧', label:`DC update waktu jadi ${fmtDate(waktu)} dan kirim notifikasi ke Supplier`, time: now });
+  s.notifications.sp.unshift({
+    id:'N-'+Date.now(), type:'update',
+    title:`Update Waktu: ${o.id}`,
+    body:`Delivery Control memperbarui waktu pengambilan ${o.stockItem} menjadi ${fmtDate(waktu)}.`,
+    time: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), read:false
+  });
+  setState(s); closeModal();
+  showToast('email','Waktu Diperbarui',`Email notifikasi perubahan dikirim ke ${o.supplier}.`);
+  loadView('monitoring-dc');
+}
+
+function openModalMemo(orderId) {
+  const s = getState();
+  const o = s.orders.find(x=>x.id===orderId);
+  if (!o) return;
+  const memoNum = 'MEMO-' + new Date().getFullYear() + '-' + String(s.orders.filter(x=>x.memo).length + 1).padStart(3,'0');
+  openModal(`Buat Memo Pengambilan`, o.id + ' — ' + o.stockItem,`
+    <div style="background:var(--gray50);border-radius:10px;padding:12px;margin-bottom:16px">
+      <div class="grid2" style="gap:10px">
+        <div><div class="text-sm text-muted">Item</div><div style="font-weight:600;font-size:13px">${o.stockItem}</div></div>
+        <div><div class="text-sm text-muted">Qty</div><div style="font-weight:600;font-size:13px">${o.qty} ${o.unit}</div></div>
+        <div><div class="text-sm text-muted">Supplier</div><div style="font-weight:600;font-size:13px">${o.supplier}</div></div>
+        <div><div class="text-sm text-muted">Waktu Ambil</div><div style="font-weight:600;font-size:13px">${fmtDate(o.deliveryTime)}</div></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="form-group">
+        <label class="form-label">No. Memo</label>
+        <input class="form-control" id="f-memo-num" value="${memoNum}" readonly style="background:var(--gray50)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">No. Polisi Truck</label>
+        <input class="form-control" id="f-nopol" placeholder="Contoh: B 1234 XY">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nama Pengemudi</label>
+      <input class="form-control" id="f-driver" placeholder="Nama pengemudi truck">
+    </div>`,
+    `<button class="btn btn-outline" onclick="closeModal()">Batal</button>
+     <button class="btn btn-primary" onclick="doSimpanMemo('${orderId}')">💾 Simpan Memo</button>`
+  );
+}
+
+function doSimpanMemo(orderId) {
+  const s = getState();
+  const o = s.orders.find(x=>x.id===orderId);
+  const nopol = document.getElementById('f-nopol').value;
+  const memoNum = document.getElementById('f-memo-num').value;
+  if (!nopol) { showToast('error','Perlu Diisi','Masukkan nomor polisi truck.'); return; }
+  const now = new Date().toLocaleString('id-ID');
+  o.memo = memoNum; o.noPolisi = nopol; o.status = 'memo_done';
+  o.timeline.push({ actor:'dc', icon:'📄', label:`Memo ${memoNum} dibuat, no polisi ${nopol}`, time: now });
+  s.notifications.wh.unshift({
+    id:'N-'+Date.now(), type:'update',
+    title:`Memo ${memoNum} Dibuat`,
+    body:`Delivery Control membuat memo untuk ${o.stockItem}. Truck: ${nopol}.`,
+    time: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), read:false
+  });
+  setState(s); closeModal();
+  showToast('success','Memo Disimpan',`${memoNum} berhasil dibuat. Siap untuk cetak dan transaksi out.`);
+  loadView('memo');
+}
+
+function openModalCetakMemo(orderId) {
+  const s = getState();
+  const o = s.orders.find(x=>x.id===orderId);
+  if (!o) return;
+  const printContent = `
+    <div style="font-family:var(--sans);padding:20px;border:2px solid var(--gray800);border-radius:8px;font-size:13px">
+      <div style="text-align:center;border-bottom:2px solid var(--gray800);padding-bottom:12px;margin-bottom:16px">
+        <div style="font-size:20px;font-weight:800;letter-spacing:-0.5px">MEMO PENGAMBILAN SARANA HANDLING</div>
+        <div style="font-size:13px;color:var(--gray500)">No: ${o.memo}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+        <div><span style="color:var(--gray500)">No. Perintah:</span><br><strong>${o.id}</strong></div>
+        <div><span style="color:var(--gray500)">Tanggal:</span><br><strong>${fmtDate(o.deliveryTime)}</strong></div>
+        <div><span style="color:var(--gray500)">Item:</span><br><strong>${o.stockItem}</strong></div>
+        <div><span style="color:var(--gray500)">Qty:</span><br><strong>${o.qty} ${o.unit}</strong></div>
+        <div><span style="color:var(--gray500)">Supplier:</span><br><strong>${o.supplier}</strong></div>
+        <div><span style="color:var(--gray500)">No. Polisi:</span><br><strong>${o.noPolisi}</strong></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:24px">
+        <div style="border:1px solid var(--gray300);padding:12px 16px;text-align:center">
+          <div style="font-size:11px;color:var(--gray500);margin-bottom:28px">Warehouse</div>
+          <div style="font-size:11px;color:var(--gray400)">(_____________)</div>
+        </div>
+        <div style="border:1px solid var(--gray300);padding:12px 16px;text-align:center;border-left:none">
+          <div style="font-size:11px;color:var(--gray500);margin-bottom:28px">Delivery Control</div>
+          <div style="font-size:11px;color:var(--gray400)">(_____________)</div>
+        </div>
+      </div>
+    </div>`;
+  openModal('Cetak Memo', o.memo, printContent,
+    `<button class="btn btn-outline" onclick="closeModal()">Tutup</button>
+     <button class="btn btn-primary" onclick="window.print()">🖨️ Print</button>`
+  );
+}
+
+function doTransaksiOut(orderId) {
+  const s = getState();
+  const o = s.orders.find(x=>x.id===orderId);
+  if (!o) return;
+  const now = new Date().toLocaleString('id-ID');
+  o.status = 'transit';
+  o.timeline.push({ actor:'dc', icon:'📦', label:'Transaksi sarana handling out diproses', time: now });
+  setState(s);
+  showToast('success','Transaksi Out Berhasil',`${o.id} telah diproses. Silakan close transaksi setelah pengambilan selesai.`);
+  setTimeout(() => {
+    const s2 = getState();
+    const o2 = s2.orders.find(x=>x.id===orderId);
+    o2.status = 'closed';
+    o2.timeline.push({ actor:'dc', icon:'🔒', label:'Transaksi ditutup — proses selesai', time: new Date().toLocaleString('id-ID') });
+    s2.notifications.sp.unshift({
+      id:'N-'+Date.now(), type:'check',
+      title:`${o.id} — Pengambilan Selesai`,
+      body:`Transaksi sarana handling ${o.stockItem} telah ditutup oleh Delivery Control.`,
+      time: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), read:false
+    });
+    s2.notifications.wh.unshift({
+      id:'N-'+Date.now(), type:'check',
+      title:`${o.id} — Transaksi Closed`,
+      body:`${o.supplier} selesai mengambil ${o.stockItem}. Transaksi sudah ditutup.`,
+      time: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}), read:false
+    });
+    setState(s2);
+    showToast('success','Transaksi Closed',`${orderId} berhasil ditutup!`);
+    loadView('transaksi-dc');
+  }, 1800);
+  loadView('transaksi-dc');
+}
+
+function openModalDetail(orderId) {
+  const s = getState();
+  const o = s.orders.find(x=>x.id===orderId);
+  if (!o) return;
+  openModal(`Detail ${o.id}`, o.stockItem,`
+    <div style="background:var(--gray50);border-radius:10px;padding:14px;margin-bottom:16px">
+      <div class="grid2" style="gap:10px">
+        <div><div class="text-sm text-muted">Item</div><div style="font-weight:600">${o.stockItem}</div></div>
+        <div><div class="text-sm text-muted">Qty</div><div style="font-weight:600">${o.qty} ${o.unit}</div></div>
+        <div><div class="text-sm text-muted">Supplier</div><div style="font-weight:600">${o.supplier}</div></div>
+        <div><div class="text-sm text-muted">Status</div>${statusBadge(o.status)}</div>
+        <div><div class="text-sm text-muted">Waktu Pengambilan</div><div style="font-weight:600">${fmtDate(o.deliveryTime)}</div></div>
+        ${o.memo ? `<div><div class="text-sm text-muted">No. Memo</div><div style="font-weight:600">${o.memo}</div></div>` : ''}
+        ${o.noPolisi ? `<div><div class="text-sm text-muted">No. Polisi</div><div style="font-weight:600">${o.noPolisi}</div></div>` : ''}
+      </div>
+    </div>
+    <div class="card-title" style="margin-bottom:12px">Timeline</div>
+    <div class="timeline">${o.timeline.map(t=>`
+      <div class="tl-item">
+        <div class="tl-dot tl-${t.actor}">${t.icon}</div>
+        <div class="tl-content"><div class="tl-title">${t.label}</div><div class="tl-meta">${t.time}</div></div>
+      </div>`).join('')}
+    </div>`,
+    `<button class="btn btn-outline" onclick="closeModal()">Tutup</button>`
+  );
+}
+
+function markRead(id) {
+  const s = getState();
+  const n = (s.notifications[currentRole]||[]).find(x=>x.id===id);
+  if (n) { n.read = true; setState(s); loadView('notif'); }
+}
+function markAllRead() {
+  const s = getState();
+  (s.notifications[currentRole]||[]).forEach(n=>n.read=true);
+  setState(s); loadView('notif');
+}
+
+/* ═══ TOAST ═══ */
+function showToast(type, title, msg) {
+  const icons = { success:'✅', warning:'⚠️', error:'❌', email:'📧', info:'ℹ️' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<div class="toast-icon">${icons[type]||'📬'}</div><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(), 300); }, 3500);
+}
+
+/* ═══ CLOSE MODAL ON BACKDROP ═══ */
+document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+/* ═══ INIT ═══ */
+selectRole('wh');
+</script>
+</body>
+</html>
